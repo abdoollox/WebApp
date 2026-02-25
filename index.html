@@ -2,90 +2,116 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hogwarts Cinema Katalogi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Telegramning o'z ranglarini avtomatik olish tizimi */
-        body { 
-            font-family: sans-serif; 
-            background-color: var(--tg-theme-bg-color, #1e1e1e); 
-            color: var(--tg-theme-text-color, #ffffff); 
-            text-align: center; 
-            padding: 15px; 
-            margin: 0;
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #141414);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --card-bg: var(--tg-theme-secondary-bg-color, #2b2b2b);
+            --btn-uz: #28a745;
+            --btn-en: #007bff;
         }
-        .movie-card { 
-            border: 1px solid var(--tg-theme-hint-color, #555); 
-            border-radius: 12px; 
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            margin: 0;
             padding: 15px; 
-            margin-bottom: 20px; 
-            background-color: var(--tg-theme-secondary-bg-color, #2c2c2c); 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            padding-bottom: 40px;
+        }
+        h2 { text-align: center; margin-bottom: 25px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* CSS Grid: Avtomatik moslashuvchi qatorlar */
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .movie-card { 
+            background-color: var(--card-bg); 
+            border-radius: 12px; 
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
         }
         .movie-card img { 
             width: 100%; 
-            max-width: 300px; 
-            border-radius: 8px; 
+            height: 220px;
+            object-fit: cover; 
+            display: block;
         }
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
+        .movie-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        .movie-title { font-size: 14px; font-weight: bold; margin: 0 0 10px 0; text-align: center; line-height: 1.2; }
+        
+        .btn-group { display: flex; gap: 8px; }
         button { 
-            background-color: var(--tg-theme-button-color, #2481cc); 
-            color: var(--tg-theme-button-text-color, #ffffff); 
             border: none; 
-            padding: 12px 15px; 
-            border-radius: 8px; 
-            font-size: 14px; 
+            padding: 10px 0; 
+            border-radius: 6px; 
+            font-size: 13px; 
             font-weight: bold;
+            color: white;
             cursor: pointer; 
             flex: 1;
+            transition: opacity 0.2s;
         }
-        button:active {
-            opacity: 0.8;
-        }
+        button:active { opacity: 0.7; }
+        .btn-uz { background-color: var(--btn-uz); }
+        .btn-en { background-color: var(--btn-en); }
     </style>
 </head>
 <body>
 
-    <h2>🎬 Katalog</h2>
+    <h2>🎬 Hogwarts Katalogi</h2>
 
-    <div class="movie-card">
-        <h3>Harry Potter va Falsafa Toshi</h3>
-        <img src="https://image.tmdb.org/t/p/original/czc2qzAYReO8DaALtQnZSF7FmGy.jpg" alt="Harry Potter 1">
-        <p>Tilni tanlang:</p>
-        <div class="btn-group">
-            <button onclick="requestMovie('hp1_uz')">🇺🇿 O'zbek</button>
-            <button onclick="requestMovie('hp1_en')">🇬🇧 Ingliz</button>
-        </div>
-    </div>
+    <div class="catalog-grid" id="catalog"></div>
 
     <script>
-        // Telegram obyekti
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Ochildi deguncha ekranni to'liq egallash
+        tg.expand();
         tg.ready();
 
+        // Tizimli yondashuv: Barcha ma'lumotlar bitta massivda saqlanadi
+        const movies = [
+            { id: "hp1", title: "Falsafa Toshi", img: "https://m.media-amazon.com/images/M/MV5BMzkyZGFlOWQtZjFlMi00N2YwLWE2OWQtYTgxY2NkNWEyNDFlXkEyXkFqcGdeQXVyNjY1NTM1MzA@._V1_.jpg" },
+            { id: "hp2", title: "Maxfiy Hujra", img: "https://m.media-amazon.com/images/M/MV5BMjE0YjUzNDUtMjc5OS00MTU3LTgxMmUtODhkOThkMzdjNWI4XkEyXkFqcGdeQXVyMTA3MzQ4MTc0._V1_.jpg" },
+            { id: "hp3", title: "Azkaban Mahbusi", img: "https://m.media-amazon.com/images/M/MV5BMTY4NTIwODg0N15BMl5BanBnXkFtZTcwOTc0OTcwMw@@._V1_.jpg" },
+            { id: "hp4", title: "Olovli Kubok", img: "https://m.media-amazon.com/images/M/MV5BMTI1NDMyMjExOF5BMl5BanBnXkFtZTcwOTc4MTA1Mw@@._V1_.jpg" },
+            { id: "hp5", title: "Feniks Jamiyati", img: "https://m.media-amazon.com/images/M/MV5BOTA3MmRmZDgtYWU1OS00NmVkLTg3NTYtNDgwYzNlODU5MGY0XkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_.jpg" },
+            { id: "hp6", title: "Chalasang Shahzoda", img: "https://m.media-amazon.com/images/M/MV5BNzU3NDg4NTAyNV5BMl5BanBnXkFtZTcwOTg2ODg1Mg@@._V1_.jpg" },
+            { id: "hp7", title: "Ajal Tuhfasi: 1-qism", img: "https://m.media-amazon.com/images/M/MV5BMTQ2OTE1Mjk0N15BMl5BanBnXkFtZTcwODE3MDAwNA@@._V1_.jpg" },
+            { id: "hp8", title: "Ajal Tuhfasi: 2-qism", img: "https://m.media-amazon.com/images/M/MV5BMjIyZGU4YzUtNDkzYi00ZDRhLTliZmEtMzUzYWE1YmFlNWExXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_.jpg" }
+        ];
+
+        const catalogContainer = document.getElementById('catalog');
+
+        // Ma'lumotlarni o'qib, ekranga render qilish
+        movies.forEach(movie => {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            card.innerHTML = `
+                <img src="${movie.img}" alt="${movie.title}">
+                <div class="movie-info">
+                    <p class="movie-title">${movie.title}</p>
+                    <div class="btn-group">
+                        <button class="btn-uz" onclick="requestMovie('${movie.id}_uz')">UZ</button>
+                        <button class="btn-en" onclick="requestMovie('${movie.id}_en')">EN</button>
+                    </div>
+                </div>
+            `;
+            catalogContainer.appendChild(card);
+        });
+
         function requestMovie(payload) {
-            // DIQQAT: O'ZINGNING BOTING USERNAME'INI YOZ
-            let botUsername = "garripotterkinobot"; // O'zingnikini yozganingni tekshir
-            
-            // Deep Link yaratish
+            let botUsername = "garripotterkinobot"; // O'zingnikini tekshir
             let link = `https://t.me/${botUsername}?start=${payload}`;
-            
-            // 1. Havolani ochish (Botni uyg'otadi)
             tg.openTelegramLink(link);
-            
-            // 2. MAJBURIY YOPISH (Oynani o'ldiradi)
-            tg.close(); 
+            tg.close();
         }
     </script>
-
 </body>
-
 </html>
-

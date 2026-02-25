@@ -3,111 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hogwarts Cinema Katalogi</title>
+    <title>Hogwarts Cinema</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg-color: var(--tg-theme-bg-color, #141414);
             --text-color: var(--tg-theme-text-color, #ffffff);
             --card-bg: var(--tg-theme-secondary-bg-color, #2b2b2b);
-            --btn-uz: #28a745;
-            --btn-en: #007bff;
+            --btn-color: var(--tg-theme-button-color, #2481cc);
         }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: var(--bg-color); 
             color: var(--text-color); 
-            margin: 0;
-            padding: 15px; 
-            padding-bottom: 40px;
+            margin: 0; padding: 15px; text-align: center;
         }
-        h2 { text-align: center; margin-bottom: 25px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        h2 { font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;}
         
-        /* CSS Grid: Avtomatik moslashuvchi qatorlar */
-        .catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+        /* 1-QAVAT: TIL TANLASH */
+        #lang-screen { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; }
+        .lang-btn {
+            background-color: var(--card-bg); color: var(--text-color);
+            border: 2px solid var(--btn-color); border-radius: 12px;
+            padding: 20px; font-size: 18px; font-weight: bold; cursor: pointer;
+            transition: 0.2s;
         }
+        .lang-btn:active { background-color: var(--btn-color); }
 
+        /* 2-QAVAT: KATALOG */
+        #catalog-screen { display: none; }
+        .back-btn {
+            background-color: transparent; border: 1px solid gray; color: gray;
+            padding: 8px 15px; border-radius: 8px; margin-bottom: 20px; cursor: pointer;
+        }
+        .catalog-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;
+        }
         .movie-card { 
-            background-color: var(--card-bg); 
-            border-radius: 12px; 
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
+            background-color: var(--card-bg); border-radius: 12px; overflow: hidden;
+            display: flex; flex-direction: column; padding-bottom: 10px;
         }
-        .movie-card img { 
-            width: 100%; 
-            height: 220px;
-            object-fit: cover; 
-            display: block;
+        .movie-card img { width: 100%; height: 210px; object-fit: cover; display: block; margin-bottom: 10px;}
+        .movie-title { font-size: 13px; font-weight: bold; margin: 0 5px 10px 5px; height: 32px; overflow: hidden;}
+        .play-btn { 
+            background-color: var(--btn-color); color: white; border: none;
+            padding: 10px; border-radius: 6px; font-weight: bold; width: 90%; margin: 0 auto; cursor: pointer;
         }
-        .movie-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
-        .movie-title { font-size: 14px; font-weight: bold; margin: 0 0 10px 0; text-align: center; line-height: 1.2; }
-        
-        .btn-group { display: flex; gap: 8px; }
-        button { 
-            border: none; 
-            padding: 10px 0; 
-            border-radius: 6px; 
-            font-size: 13px; 
-            font-weight: bold;
-            color: white;
-            cursor: pointer; 
-            flex: 1;
-            transition: opacity 0.2s;
-        }
-        button:active { opacity: 0.7; }
-        .btn-uz { background-color: var(--btn-uz); }
-        .btn-en { background-color: var(--btn-en); }
     </style>
 </head>
 <body>
 
-    <h2>🎬 Hogwarts Katalogi</h2>
+    <div id="lang-screen">
+        <h2>Tilni tanlang</h2>
+        <button class="lang-btn" onclick="openCatalog('uz')">🇺🇿 O'zbek tili</button>
+        <button class="lang-btn" onclick="openCatalog('ru')">🇷🇺 Русский язык</button>
+        <button class="lang-btn" onclick="openCatalog('en')">🇬🇧 English</button>
+    </div>
 
-    <div class="catalog-grid" id="catalog"></div>
+    <div id="catalog-screen">
+        <button class="back-btn" onclick="goBack()">🔙 Tilni o'zgartirish</button>
+        <h2 id="catalog-title">Katalog</h2>
+        <div class="catalog-grid" id="grid"></div>
+    </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // Tizimli yondashuv: Barcha ma'lumotlar bitta massivda saqlanadi
+        let currentLang = 'uz';
+
+        // Tizimli yondashuv: Kinolar haqida baza
         const movies = [
-            { id: "hp1", title: "Falsafa Toshi", img: "https://image.tmdb.org/t/p/original/yCyv9inVfwdZa0DyFAEEElqNgNn.jpg" },
-            { id: "hp2", title: "Maxfiy Hujra", img: "https://image.tmdb.org/t/p/original/n6zpzAOoGx3kYrEzgAMHQZyF5cE.jpg" },
-            { id: "hp3", title: "Azkaban Mahbusi", img: "https://image.tmdb.org/t/p/original/sCrAJB4mwiUu9ymq0aRFWY6DcM1.jpg" },
-            { id: "hp4", title: "Olovli Kubok", img: "https://image.tmdb.org/t/p/original/7VRkmVB23rloRbZHsCRPscXlgQp.jpg" },
-            { id: "hp5", title: "Feniks Jamiyati", img: "https://image.tmdb.org/t/p/original/sMMjm3NCC3qiDxwVJZd554nCt98.jpg" },
-            { id: "hp6", title: "Chalasang Shahzoda", img: "https://image.tmdb.org/t/p/original/kMGBMPZRAfPMBgSE9LldHYJXoMf.jpg" },
-            { id: "hp7", title: "Ajal Tuhfasi: 1-qism", img: "https://image.tmdb.org/t/p/original/9DqVe6ptXZpY25YTLrOl9MHMN15.jpg" },
-            { id: "hp8", title: "Ajal Tuhfasi: 2-qism", img: "https://image.tmdb.org/t/p/original/nYRSey4YR40AYoPVJ58tWqtBANN.jpg" }
+            { id: "hp1", title_uz: "Falsafa Toshi", title_ru: "Философский камень", title_en: "Philosopher's Stone" },
+            { id: "hp2", title_uz: "Maxfiy Hujra", title_ru: "Тайная комната", title_en: "Chamber of Secrets" },
+            { id: "hp3", title_uz: "Azkaban Mahbusi", title_ru: "Узник Азкабана", title_en: "Prisoner of Azkaban" },
+            { id: "hp4", title_uz: "Olovli Kubok", title_ru: "Кубок огня", title_en: "Goblet of Fire" },
+            { id: "hp5", title_uz: "Feniks Jamiyati", title_ru: "Орден Феникса", title_en: "Order of the Phoenix" },
+            { id: "hp6", title_uz: "Chalasang Shahzoda", title_ru: "Принц-полукровка", title_en: "Half-Blood Prince" },
+            { id: "hp7", title_uz: "Ajal Tuhfasi 1", title_ru: "Дары Смерти 1", title_en: "Deathly Hallows 1" },
+            { id: "hp8", title_uz: "Ajal Tuhfasi 2", title_ru: "Дары Смерти 2", title_en: "Deathly Hallows 2" }
         ];
 
-        const catalogContainer = document.getElementById('catalog');
+        function openCatalog(lang) {
+            currentLang = lang;
+            document.getElementById('lang-screen').style.display = 'none';
+            document.getElementById('catalog-screen').style.display = 'block';
+            
+            // Sarlavhani tilga moslash
+            if(lang === 'uz') document.getElementById('catalog-title').innerText = "🎬 O'zbekcha Katalog";
+            if(lang === 'ru') document.getElementById('catalog-title').innerText = "🎬 Каталог на русском";
+            if(lang === 'en') document.getElementById('catalog-title').innerText = "🎬 English Catalog";
 
-        // Ma'lumotlarni o'qib, ekranga render qilish
-        movies.forEach(movie => {
-            const card = document.createElement('div');
-            card.className = 'movie-card';
-            card.innerHTML = `
-                <img src="${movie.img}" alt="${movie.title}">
-                <div class="movie-info">
-                    <p class="movie-title">${movie.title}</p>
-                    <div class="btn-group">
-                        <button class="btn-uz" onclick="requestMovie('${movie.id}_uz')">UZ</button>
-                        <button class="btn-en" onclick="requestMovie('${movie.id}_en')">EN</button>
-                    </div>
-                </div>
-            `;
-            catalogContainer.appendChild(card);
-        });
+            renderMovies();
+        }
+
+        function goBack() {
+            document.getElementById('catalog-screen').style.display = 'none';
+            document.getElementById('lang-screen').style.display = 'flex';
+        }
+
+        function renderMovies() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = ''; // Ekranni tozalash
+
+            movies.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                
+                // MANTIQ: ID va Tilni birlashtirib rasmni topish (Masalan: img/hp1_uz.jpg)
+                let imagePath = `img/${movie.id}_${currentLang}.jpg`;
+                
+                // Tilga mos nomni tanlash
+                let title = currentLang === 'uz' ? movie.title_uz : (currentLang === 'ru' ? movie.title_ru : movie.title_en);
+                let btnText = currentLang === 'uz' ? "Ko'rish" : (currentLang === 'ru' ? "Смотреть" : "Watch");
+
+                card.innerHTML = `
+                    <img src="${imagePath}" alt="${title}" onerror="this.src='https://via.placeholder.com/150?text=Poster+Topilmadi'">
+                    <p class="movie-title">${title}</p>
+                    <button class="play-btn" onclick="requestMovie('${movie.id}_${currentLang}')">▶ ${btnText}</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
         function requestMovie(payload) {
-            let botUsername = "garripotterkinobot"; // O'zingnikini tekshir
+            let botUsername = "garripotterkinobot"; // O'zingnikini tekshirib qo'y
             let link = `https://t.me/${botUsername}?start=${payload}`;
             tg.openTelegramLink(link);
             tg.close();
@@ -115,4 +136,3 @@
     </script>
 </body>
 </html>
-

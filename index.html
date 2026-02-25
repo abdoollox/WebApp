@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hogwarts Cinema Katalogi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Telegramning o'z ranglarini avtomatik olish tizimi */
+        body { 
+            font-family: sans-serif; 
+            background-color: var(--tg-theme-bg-color, #1e1e1e); 
+            color: var(--tg-theme-text-color, #ffffff); 
+            text-align: center; 
+            padding: 15px; 
+            margin: 0;
+        }
+        .movie-card { 
+            border: 1px solid var(--tg-theme-hint-color, #555); 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            background-color: var(--tg-theme-secondary-bg-color, #2c2c2c); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .movie-card img { 
+            width: 100%; 
+            max-width: 300px; 
+            border-radius: 8px; 
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button { 
+            background-color: var(--tg-theme-button-color, #2481cc); 
+            color: var(--tg-theme-button-text-color, #ffffff); 
+            border: none; 
+            padding: 12px 15px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            font-weight: bold;
+            cursor: pointer; 
+            flex: 1;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🎬 Katalog</h2>
+
+    <div class="movie-card">
+        <h3>Harry Potter va Falsafa Toshi</h3>
+        <img src="https://m.media-amazon.com/images/M/MV5BMzkyZGFlOWQtZjFlMi00N2YwLWE2OWQtYTgxY2NkNWEyNDFlXkEyXkFqcGdeQXVyNjY1NTM1MzA@._V1_.jpg" alt="Harry Potter 1">
+        <p>Tilni tanlang:</p>
+        <div class="btn-group">
+            <button onclick="requestMovie('hp1_uz')">🇺🇿 O'zbek</button>
+            <button onclick="requestMovie('hp1_en')">🇬🇧 Ingliz</button>
+        </div>
+    </div>
+
+    <script>
+        // Telegram obyekti
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Ochildi deguncha ekranni to'liq egallash
+        tg.ready();
+
+        function requestMovie(payload) {
+            // DIQQAT: O'ZINGNING BOTING USERNAME'INI YOZ (@ belgisiz)
+            let botUsername = "garripotterkinobot"; 
+            
+            // Deep Link yaratish
+            let link = `https://t.me/${botUsername}?start=${payload}`;
+            
+            // Telegram orqali havolani ochish (bu botni uyg'otadi va WebApp ni yopadi)
+            tg.openTelegramLink(link);
+        }
+    </script>
+
+</body>
+</html>

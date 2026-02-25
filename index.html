@@ -71,17 +71,21 @@
         tg.ready();
 
         function requestMovie(payload) {
-            // DIQQAT: O'ZINGNING BOTING USERNAME'INI YOZ (@ belgisiz)
-            let botUsername = "garripotterkinobot"; 
+            // DIQQAT: O'ZINGNING BOTING USERNAME'INI YOZ
+            let botUsername = "garripotterkinobot"; // O'zingnikini yozganingni tekshir
             
             // Deep Link yaratish
             let link = `https://t.me/${botUsername}?start=${payload}`;
             
-            // Telegram orqali havolani ochish (bu botni uyg'otadi va WebApp ni yopadi)
+            // 1. Havolani ochish (Botni uyg'otadi)
             tg.openTelegramLink(link);
+            
+            // 2. MAJBURIY YOPISH (Oynani o'ldiradi)
+            tg.close(); 
         }
     </script>
 
 </body>
 
 </html>
+

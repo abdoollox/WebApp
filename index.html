@@ -131,7 +131,7 @@
     </div>
 
     <div id="catalog-screen">
-        <button class="back-btn" onclick="goBack()">🔙 Tilni o'zgartirish</button>
+        <button class="back-btn" id="back-btn" onclick="goBack()">🔙 Tilni o'zgartirish</button>
         <h2 id="catalog-title">Katalog</h2>
         
         <div class="catalog-grid" id="grid"></div>
@@ -160,9 +160,21 @@
             document.getElementById('lang-screen').style.display = 'none';
             document.getElementById('catalog-screen').style.display = 'block';
             
-            if(lang === 'uz') document.getElementById('catalog-title').innerText = "🎬 O'zbekcha Katalog";
-            if(lang === 'ru') document.getElementById('catalog-title').innerText = "🎬 Каталог на русском";
-            if(lang === 'en') document.getElementById('catalog-title').innerText = "🎬 English Catalog";
+            // Nishonga olingan elementlar
+            let titleEl = document.getElementById('catalog-title');
+            let backBtnEl = document.getElementById('back-btn');
+            
+            // Qat'iy lokalizatsiya mantiqi
+            if(lang === 'uz') {
+                titleEl.innerText = "🎬 O'zbekcha Katalog";
+                backBtnEl.innerText = "⏏️ Tilni o'zgartirish";
+            } else if(lang === 'ru') {
+                titleEl.innerText = "🎬 Каталог на русском";
+                backBtnEl.innerText = "⏏️ Сменить язык";
+            } else if(lang === 'en') {
+                titleEl.innerText = "🎬 English Catalog";
+                backBtnEl.innerText = "⏏️ Change language";
+            }
 
             renderMovies();
         }
@@ -202,3 +214,4 @@
     </script>
 </body>
 </html>
+
